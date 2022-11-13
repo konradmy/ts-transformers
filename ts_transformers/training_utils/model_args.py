@@ -23,6 +23,9 @@ class ModelArgs:
         val_size: float = 0.2,
         dataset: str = "yfinance",
         ticker: str = "AAPL",
+        date_start: str = "2017-01-01",
+        date_end: str = "2021-10-01",
+        scale_target: bool = False,
         batch_size: int = 60,
         execution_id: str = None,
         optim: str = "adam",
@@ -47,6 +50,9 @@ class ModelArgs:
         self.val_size = val_size
         self.dataset = dataset
         self.ticker = ticker
+        self.date_start = date_start
+        self.date_end = date_end
+        self.scale_target = scale_target
         self.batch_size = batch_size
         self.optim = optim
         self.lr = lr
@@ -96,6 +102,9 @@ class ModelArgs:
             "val_size": self.val_size,
             "dataset": self.dataset,
             "ticker": self.ticker,
+            "date_start": self.date_start,
+            "date_end": self.date_end,
+            "scale_target": self.scale_target,
             "batch_size": self.batch_size,
             "optim": self.optim,
             "lr": self.lr,

@@ -1,12 +1,14 @@
 """This module contains a Trainer class responsible for training models.
 """
 
-from typing import Callable
+from typing import Callable, List
 from datetime import datetime
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
+from .loss_utils import calculate_loss
+from .metrics_util import calculate_metrics
 from ..utils import create_directory
 
 
@@ -79,7 +81,7 @@ class Trainer:
 
             prediction = model(batch_x)
 
-            loss = criterion(prediction, batch_y)
+            loss = calculate_loss(model, batch_y, prediction, criterion)
 
             loss.backward()
 
@@ -94,7 +96,7 @@ class Trainer:
         model: torch.nn.Module,
         test_loader: DataLoader,
         criterion: Callable,
-    ) -> float:
+    ) -> dict:
         """Performs prediction and outputs metrics.
 
         Args:
@@ -104,18 +106,26 @@ class Trainer:
             criterion (Callable): Loss function.
 
         Returns:
-            float: Mean metrics - loss on a given dataset.
+            dict: Mean metrics for a given dataset.
         """
         model.eval()
-        test_loss = []
+        test_metrics = []
 
         for batch_x, batch_y in test_loader:
 
             prediction = model(batch_x)
 
-            test_loss.append(criterion(prediction, batch_y))
+            temp_metrs = calculate_metrics(
+                model, batch_y, prediction, criterion
+            )
 
-        return np.mean(test_loss)
+            test_metrics.append(temp_metrs)
+
+        # Calculate mean for each metric
+        metrics = _aggr_dicts(test_metrics)
+        metrics = {key: np.mean(value) for key, value in metrics.items()}
+
+        return metrics
 
     def training_loop(self):
         """Runs a training loop based on data provided in the init."""
@@ -144,12 +154,11 @@ class Trainer:
                     )
 
             if epoch % self.stats_freq == 0 and self.val_metrics:
-                val_loss = self._test(
+                val_stats = self._test(
                     model=self.model,
                     test_loader=self.test_loader,
                     criterion=self.criterion
                 )
-                val_stats = {"val_loss": val_loss}
                 _log_stats(
                     stats=val_stats,
                     epoch=epoch,
@@ -202,3 +211,28 @@ def _log_stats(
             continue
         if writer:
             writer.add_scalar(f"{test_type}_{stat_name}", stat_value, epoch)
+
+
+def _aggr_dicts(dicts_list: List[dict]) -> dict:
+    """For a list of dict with the same structure aggregates values for key.
+
+    For example for two given dictionaries:
+        dict_1 = {"a": 1, "b": 2}
+        dict_2 = {"a": 10, "b": 20}
+    it will output the following aggregated dictionary:
+        {
+            "a": [1, 10],
+            "b": [2, 20]
+        }
+
+    Args:
+        dicts_list (List[dict]): List of dictionaries with the same keys.
+
+    Returns:
+        dict: Aggregates dictionary.
+    """
+    dict_keys = dicts_list[0].keys()
+    return {
+        key: [dict_entity.get(key) for dict_entity in dicts_list]
+        for key in dict_keys
+    }

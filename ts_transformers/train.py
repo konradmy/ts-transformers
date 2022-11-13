@@ -27,6 +27,9 @@ from .utils import to_pickle
 @click.option("--val-size", default=0.2)
 @click.option("--dataset", default="yfinance")
 @click.option("--ticker", default="AAPL")
+@click.option("--date-start", default="2017-01-01")
+@click.option("--date-end", default="2021-10-01")
+@click.option("--scale-target", default=False)
 @click.option("--batch-size", default=60)
 @click.option("--optim", default="adam")
 @click.option("--lr", default=1e-3)
@@ -51,6 +54,9 @@ def _main(
     val_size: float,
     dataset: str,
     ticker: str,
+    date_start: str,
+    date_end: str,
+    scale_target: bool,
     batch_size: int,
     optim: str,
     lr: float,
@@ -77,7 +83,10 @@ def _main(
         train_size (float): Training ratio size.
         val_size (float): Validation ratio size.
         dataset (str): Dataset name.
-        ticker (str): Ticker for a stock for prediction
+        ticker (str): Ticker for a stock for prediction.
+        date_start (str): Start date for data.
+        end_date (str): End date for data.
+        scale_target (bool): Should target variable be scaled.
         batch_size (int): Batch size.
         optim (str): Optimiser type.
         lr (float): Learning rate.
@@ -109,6 +118,9 @@ def _main(
         val_size=val_size,
         dataset=dataset,
         ticker=ticker,
+        date_start=date_start,
+        date_end=date_end,
+        scale_target=scale_target,
         batch_size=batch_size,
         execution_id=execution_id,
         optim=optim,
