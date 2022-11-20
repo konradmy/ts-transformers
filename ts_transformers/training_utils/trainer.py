@@ -81,7 +81,9 @@ class Trainer:
 
             prediction = model(batch_x)
 
-            loss = calculate_loss(model, batch_y, prediction, criterion)
+            loss = calculate_loss(
+                model, batch_y, prediction, batch_x, criterion
+            )
 
             loss.backward()
 
@@ -116,7 +118,7 @@ class Trainer:
             prediction = model(batch_x)
 
             temp_metrs = calculate_metrics(
-                model, batch_y, prediction, criterion
+                model, batch_y, prediction, batch_x, criterion
             )
 
             test_metrics.append(temp_metrs)

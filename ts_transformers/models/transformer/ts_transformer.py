@@ -26,8 +26,10 @@ class TSTransformer(nn.Module):
         self.encoder = TransformerEncoder(
             hid_dim, ff_int_dim, num_heads, num_hid_layers, max_len, dropout
         )
+        self.layer_norm_1 = nn.LayerNorm(hid_dim * max_len)
         self.embedding = AbsolutePositionalEmbedding(hid_dim, dropout, max_len)
         self.linear_1 = nn.Linear(hid_dim * max_len, 64)
+        self.layer_norm_2 = nn.LayerNorm(64)
         self.dropout = nn.Dropout()
         self.linear_2 = nn.Linear(64, 1)
 
@@ -44,5 +46,7 @@ class TSTransformer(nn.Module):
         x = self.embedding(x)
         x = self.encoder(x)
         x = self.flatten(x)
+        x = self.layer_norm_1(x)
         x = self.linear_1(x)
+        x = self.layer_norm_2(x)
         return self.linear_2(self.dropout(x))
